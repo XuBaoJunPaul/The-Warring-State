@@ -1,0 +1,3 @@
+在UIManager中 Role_Main player=Scence1v1_Intialize.Instance.role_Player.getcomponent<Role_Main>();
+但是每个英雄的技能图标，头像需要在英雄info中赋初值；
+委托要加Static
