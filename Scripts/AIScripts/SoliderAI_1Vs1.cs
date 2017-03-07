@@ -22,6 +22,7 @@ public class SoliderAI_1Vs1 : MonoBehaviour {
 //	private StateMachine sm=ac.GetLayer(0).stateMachine;
 
 	void Start(){
+		transform.gameObject.AddComponent<Solider_Buff> ();
 		camp = GetComponent <RoleInfo> ().roleCamp;
 		paths = ChoicePaths (camp);
 		layerEnemy = GetComponent <RoleInfo> ().EnemyLayer;

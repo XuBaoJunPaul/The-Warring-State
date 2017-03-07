@@ -7,13 +7,13 @@ using System .Text;
 public class JsonUti{
 	
 //		转化为objcet的使用
-//		Data_Rloe role=JsonstreamToObject<Data_Rloe>(Application.dataPath + "/Resources/InitializeInfo/Ahri.text");
+//		Data_Rloe role=JsonstreamToObject<Data_Rloe>(Application.dataPath + "/InitializeInfo/Ahri.text");
 //
 //		转化为jsonText的使用
 //		if (Input .GetKeyDown (KeyCode .P )) {     //保存数据时使用
 //			string nameData;
 //			nameData ="MoZi.text";
-//			string path=Application.dataPath + "/Resources/InitializeInfo/"+nameData ; ;
+//			string path=Application.dataPath + "/InitializeInfo/"+nameData ; ;
 //			ObjectToJsonStream <Data_Rloe> (path, role);
 //		}
 	static int count=0;

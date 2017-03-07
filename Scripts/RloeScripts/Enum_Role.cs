@@ -4,9 +4,9 @@ using UnityEngine;
 
 public enum Enum_Role{
 	Ahri,
-	GodOfMoon,
-	JinKe,
-	Amumu,
+	ChangE,
+	JianMo,
+	WuNiang,
 	XiaoYaoZi,
 	YangJian,
 }

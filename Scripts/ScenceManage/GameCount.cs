@@ -96,16 +96,18 @@ public class GameCount : MonoBehaviour {
 	void Update () {
 		for (int i = 0; i < roles_Red.Length ; i++) {
 			roles_Red [i].name = roleMains_Red [i].name;
+			roles_Red [i].role = roleMains_Red [i].roleName;
 			roles_Red [i].killCount = roleMains_Red [i].killCount;
 			roles_Red [i].assistsCount = roleMains_Red [i].assistsCount;
 			roles_Red [i].deathCount = roleMains_Red [i].deathCount;
 			roles_Red [i].soliderKillCount = roleMains_Red [i].soliderKillCount;
 
-			roleMains_Blue [i].name = roleMains_Blue [i].name;
-			roleMains_Blue [i].killCount = roleMains_Blue [i].killCount;
-			roleMains_Blue [i].assistsCount = roleMains_Blue [i].assistsCount;
-			roleMains_Blue [i].deathCount = roleMains_Blue [i].deathCount;
-			roleMains_Blue [i].soliderKillCount = roleMains_Blue [i].soliderKillCount;
+			roles_Blue[i].name = roleMains_Blue [i].name;
+			roles_Blue[i].role = roleMains_Blue [i].roleName;
+			roles_Blue[i].killCount = roleMains_Blue [i].killCount;
+			roles_Blue[i].assistsCount = roleMains_Blue [i].assistsCount;
+			roles_Blue[i].deathCount = roleMains_Blue [i].deathCount;
+			roles_Blue[i].soliderKillCount = roleMains_Blue [i].soliderKillCount;
 		}
 
 
@@ -113,11 +115,13 @@ public class GameCount : MonoBehaviour {
 			CanOver = true;
 			redWin = false ;
 			blueWin = true;
+			scencePass.IsGameOver = true;
 		}
 		if (towerBlue.Hp <=0) {
 			CanOver = true;
 			redWin = true;
 			blueWin = false;
+			scencePass.IsGameOver = true;
 		}
 
 		if (CanOver ==true ) {

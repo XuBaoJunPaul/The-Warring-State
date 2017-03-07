@@ -62,9 +62,9 @@ public class Role_ali :Role_Main  {
 				CanAtkNormal = false;
 			}
 		}
-		if (target != null) {
+		if (target != null && CanAtkNormal) {
 			Vector3 selfPos = transform.FindChild ("Atk_Radius").position;
-			if (Vector3.Distance (selfPos, target.position) > attack_Radius) {
+			if(Vector3.Distance (selfPos, target.position) > attack_Radius) {
 				Debug.Log ("跑到目标点"+Vector3.Distance (selfPos, target.position) +"半径："+attack_Radius);
 				SetMoveTarget (target.position);//跑到目标点
 			}
@@ -75,6 +75,7 @@ public class Role_ali :Role_Main  {
 					lookDir.y = 0f;
 					transform.rotation = Quaternion.LookRotation (lookDir);
 					ani.SetTrigger ("CanSkill_Akt");
+					agent.Stop ();
 				}
 			}
 			if (Vector3.Distance (selfPos, target.position) < (attack_Radius - 0.7f)) {
@@ -92,7 +93,7 @@ public class Role_ali :Role_Main  {
 	}
 	public void Atk_Event_Fire(){     //普功的时候 动作的一个事件；  生成子弹；
 		GameObject bulletAli = Instantiate (bullet, firePos.position, Quaternion.identity)as GameObject;
-		bulletAli.GetComponent <BulletAction> ().GetNumber (GetComponent<Role_Main> ());
+		bulletAli.GetComponent <BulletAction> ().GetNumber (this);
 		bulletAli.GetComponent <BulletAction> ().SetTarget (target);   //函数内有协同
 		timeCouAtkNormal = 0f;
 		CanAtkNormal = false;
@@ -113,8 +114,14 @@ public class Role_ali :Role_Main  {
 	}
 	public void Skill_Q_Event(){   //技能Q的事件
 		Skill_Q_Damage_Real = true;
-		RaycastHit hit;
-		Physics.Linecast (transform.position + new Vector3 (0, 1, 0), weapon.position + new Vector3 (0, -1, 1),out hit , EnemyLayer);
+		Collider[] cols_Ahri = Physics.OverlapCapsule (firePos.position, transform.FindChild ("weapon/WEAPON_1").position, 0.4f, EnemyLayer);
+		if (cols_Ahri .Length >0) {
+			for (int i = 0; i < cols_Ahri .Length; i++) {
+				if (cols_Ahri [i].GetComponent <RoleInfo>().type_Allrole !=Type_Allrole.tower) {      //不能对防御塔进行伤害
+					cols_Ahri [i].GetComponent<RoleInfo> ().GetHurt (skill_Q .attack_Physical, skill_Q.attack_Magic,this);
+				}
+			}
+		}
 	}
 	public void Skill_Q_Event_End(){
 		stateAni = State_Ani.State_Idle;

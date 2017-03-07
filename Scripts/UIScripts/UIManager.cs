@@ -8,7 +8,10 @@ using UnityEngine.SceneManagement;
 public class UIManager : MonoBehaviour {
 	public OperatePanel op;
 	public GameCount gc;
-	public GameObject instance;
+	public static UIManager instance;
+	public UIManager Instance{
+		get { return instance;}
+	}
 	public bool isMoving;
 
 	public Transform handControl;
@@ -61,7 +64,11 @@ public class UIManager : MonoBehaviour {
 
 	public MapSelect mapSelect;
 
+	AudioClip openPanelSound;
+
 	void Awake(){
+		openPanelSound = Resources.Load<AudioClip>("Audios/UI/OpenPanel");
+
 		handControl = transform.Find ("OperatePanel/HandControlBack/HandControl");
 		op = transform.Find ("OperatePanel").GetComponent<OperatePanel> ();
 		gc = GameObject.Find ("ScriptsManager").GetComponent<GameCount> ();
@@ -86,7 +93,7 @@ public class UIManager : MonoBehaviour {
 		} else {
 			player = Scence3v3_Intialize.Instance.role_Players[0].GetComponent <Role_Main> ();
 		}
-		instance = this.gameObject;
+		instance = this;
 		handStartPos = handControl.position;
 
 		expData = transform.Find ("DataPanel/DetailPanel/EXP/Text").GetComponent<Text>();
@@ -110,6 +117,9 @@ public class UIManager : MonoBehaviour {
 		detailPanel = transform.Find("DataPanel/DetailPanel").gameObject;
 		buyPanel = transform.Find ("DataPanel/BuyPanel").gameObject;
 		setPanel = transform.Find ("DataPanel/SetPanel").gameObject;
+		detailPanel.SetActive (false);
+		buyPanel.SetActive (false);
+		setPanel.SetActive (false);
 
 		button_DetailButton = GameObject.Find ("UI/DataPanel/DetailButton").GetComponent<Button>();
 		EventTriggerListener.Get(button_DetailButton.gameObject).onClick= OnDetailButtonClick;
@@ -131,7 +141,7 @@ public class UIManager : MonoBehaviour {
 		gold.text = "" + player.money;
 		MoveControl ();
 		if (player != null) {
-			expData.text = player.Levl_exp + "/" + player.Level * 10;
+			expData.text = player.Level_exp + "/" + player.Level * 10;
 			hpData.text = player.Hp + "/" + player.HpMax;
 			mpData.text = player.Mp + "/" + player.MpMax;
 			pDamData.text = player.attack_Physical + "";
@@ -194,6 +204,7 @@ public class UIManager : MonoBehaviour {
 	void OnDetailButtonClick(GameObject go){
 		if (go == button_DetailButton.gameObject) {
 			if (!op.detailPanelOpen) {
+				AudioSource.PlayClipAtPoint (openPanelSound,op.cam.transform.position);
 				HideAllPanel ();
 				detailClickedButton.SetActive (true);
 				detailNormalButton.SetActive (false);
@@ -214,6 +225,7 @@ public class UIManager : MonoBehaviour {
 
 	void OnBuyBUttonClick(GameObject go){
 		if (go == button_BuyButton.gameObject) {
+			AudioSource.PlayClipAtPoint (openPanelSound,op.cam.transform.position);
 			if (!op.buyPanelOpen) {
 				HideAllPanel ();
 				buyPanel.SetActive (true);

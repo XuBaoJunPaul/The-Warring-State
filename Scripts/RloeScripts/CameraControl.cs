@@ -24,6 +24,12 @@ public class CameraControl : MonoBehaviour {
 			player_RoleMain = Scence3v3_Intialize.Instance.role_Players [0].GetComponent <Role_Main> ();
 		}
 		cam_pos = Camera.main.transform;
+		Vector3 camTemp2 =player.position ;
+		camTemp2.y +=10f;
+		camTemp2.z -= 10f;
+		camTemp2.x -= 4f;
+		cam_pos.position = camTemp2;	
+
 		layerScence = LayerMask.GetMask ("Scence");
 		layerPlayer = player_RoleMain.EnemyLayer;
 	}
@@ -38,16 +44,20 @@ public class CameraControl : MonoBehaviour {
 				player_RoleMain.SetMoveTarget (hit.point);        //角色移动调用
 				player_RoleMain.target =null ;
 				player_RoleMain.CanAtkNormal = false;
-			}
 
+			}
 		}
 		if ( Physics.Raycast (ray, out hit, 200f, layerPlayer)) {
 			Debug.DrawLine (cam_pos.position,hit.point ,Color .blue);
 			if (Input.GetMouseButtonDown (0)) {
 				Debug.Log (""+hit.transform.gameObject.name);
 				player_RoleMain .SetTarget(hit.transform);
+
 			}
 		}
+		Vector3 temp =hit.point-player .position; 
+		temp.y = 0f;
+		player_RoleMain.skillLookDir = temp;
 	} 
 	void OnGUI(){
 		//GUILayout.Label ("鼠标位置：" + Input.mousePosition);
@@ -63,9 +73,9 @@ public class CameraControl : MonoBehaviour {
 	/// <param name="mousePose">Mouse pose.</param>
 	/// <param name="speed">Speed.</param>
 	void CameraMoveControl(Vector3 mousePose,float speed){    
-		if (Input.GetKeyDown (KeyCode.Space )) {
+		if (Input.GetKey (KeyCode.Space )) {
 			Vector3 camTemp1 =player.position ;
-			camTemp1 .y +=10f;
+			camTemp1.y = cam_pos.position.y;
 			camTemp1.z -= 10f;
 			camTemp1.x -= 4f;
 			cam_pos.position = camTemp1;	 

@@ -47,11 +47,18 @@ public class OperatePanel : MonoBehaviour {
 
 	UIManager ui;
 
+	AudioClip buySound;
+
+	public Camera cam;
+
 	void Awake(){
 		ui = transform.parent.GetComponent<UIManager> ();
+		cam = Camera.main;
 	}
 	void Start () 
 	{
+		buySound = Resources.Load<AudioClip> ("Audios/UI/Buy");
+
 		itemCount = 0;
 		doubleClickTimeCount = 0;
 		doubleClickLimitTime = 0.5f;
@@ -109,6 +116,7 @@ public class OperatePanel : MonoBehaviour {
 			doubleClickTimeCount = 0;
 			firstClick = false;
 		}
+
 	}
 
 	private void OnSkillButtonClick(GameObject go){
@@ -118,6 +126,7 @@ public class OperatePanel : MonoBehaviour {
 			} else {
 				Debug.Log ("Delegate unset!");
 			}
+			StartCoroutine ("CDCount","Q");
 		}
 		if(go == button_SkillW.gameObject){
 			if (skillButtonDelegate != null) {
@@ -125,6 +134,7 @@ public class OperatePanel : MonoBehaviour {
 			} else {
 				Debug.Log ("Delegate unset!");
 			}
+			StartCoroutine ("CDCount","W");
 		}
 		if(go == button_SkillE.gameObject){
 			if (skillButtonDelegate != null) {
@@ -132,6 +142,7 @@ public class OperatePanel : MonoBehaviour {
 			} else {
 				Debug.Log ("Delegate unset!");
 			}
+			StartCoroutine ("CDCount","E");
 		}
 	}
 
@@ -194,6 +205,7 @@ public class OperatePanel : MonoBehaviour {
 
 	public void OnBuyItems (int code){
 		if (doubleClickTimeCount <= doubleClickLimitTime && firstClick && itemCount<6 && Convert.ToInt32(gold.text) >= Items.items[code-1].Gold) {
+			AudioSource.PlayClipAtPoint (buySound,cam.transform.position);
 			Sprite target = Resources.Load<Sprite> ("UI/Item_Texture/" + code);
 			GetItemTex (target);
 			moneyChange -= Items.items [code - 1].Gold;
@@ -244,6 +256,42 @@ public class OperatePanel : MonoBehaviour {
 		for (int i = 0; i < 6; i++) {
 			items [i].gameObject.SetActive (false);
 		}
+	}
+
+	IEnumerator CDCount(string QWE){
+		Image CD = transform.Find ("Skill_" + QWE + "/CD").GetComponent<Image> ();
+		switch (QWE){
+		case "Q":
+			if (ui.player.skill_Q.level > 0) {
+				float tmp = 0;
+				while (tmp >= 0) {
+					tmp = 1 - ui.player.skill_Q.timeCount / ui.player.skill_Q.CD;
+					CD.fillAmount = tmp;
+				}
+			}
+			break;
+
+		case "W":
+			if (ui.player.skill_W.level > 0) {
+				float tmp2 = 0;
+				while (tmp2 >= 0) {
+					tmp2 = 1 - ui.player.skill_W.timeCount / ui.player.skill_W.CD;
+					CD.fillAmount = tmp2;
+				}
+			}
+			break;
+
+		case "E":
+			if (ui.player.skill_E.level > 0) {
+				float tmp3 = 0;
+				while (tmp3 >= 0) {
+					tmp3 = 1 - ui.player.skill_E.timeCount / ui.player.skill_E.CD;
+					CD.fillAmount = tmp3;
+				}
+			}
+			break;
+		}
+		yield return null;
 	}
 }
 

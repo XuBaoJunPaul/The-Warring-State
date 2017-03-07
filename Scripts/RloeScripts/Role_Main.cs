@@ -38,19 +38,24 @@ public abstract  class Role_Main : RoleInfo {   //与徐宝骏合并
 	public Vector3 MoveTarget;	 //移动的目标
 	public Transform target;     //攻击目标
 	public Animator ani;
-	public NavMeshAgent agent;
 	public AnimatorStateInfo aniInfo; //获取状态机的状态用 
+	public Vector3 skillLookDir;
+	public UIManager uimanager;
+	public NavMeshAgent agent;
 
 	void Awake(){
 	}
 	protected IEnumerator Start(){           //基类初始化
+
+		uimanager = GameObject.Find("UI").GetComponent<UIManager>();
+
 		if (roleCamp == Role_Camp.Blue) {
-			FriendLayer = LayerMask.GetMask ("Blue");
-			EnemyLayer = LayerMask.GetMask ("Red");
+			FriendLayer = LayerMask.GetMask ("Blue","Buff");
+			EnemyLayer = LayerMask.GetMask ("Red","Buff");
 			EnemyLayerNum = 9;
 		} else {
-			FriendLayer = LayerMask.GetMask ("Red");
-			EnemyLayer = LayerMask.GetMask ("Blue");
+			FriendLayer = LayerMask.GetMask ("Red","Buff");
+			EnemyLayer = LayerMask.GetMask ("Blue","Buff");
 			EnemyLayerNum = 10;
 		}
 		BaseStart ();
@@ -67,6 +72,11 @@ public abstract  class Role_Main : RoleInfo {   //与徐宝骏合并
 		skill_E.tex=Resources .Load <Sprite>(pathTemp + "Skill_E");
 		skill_D.tex = FindTexDF (skill_D.skillName);
 		skill_F.tex = FindTexDF (skill_F.skillName);
+		skill_Q.timeCount = skill_Q.CD;
+		skill_W.timeCount = skill_W.CD;
+		skill_E.timeCount = skill_E.CD;
+		skill_D.timeCount = skill_D.CD;
+		skill_F.timeCount = skill_F.CD;
 		colRole = GetComponent <Collider> ();
 		uiManager = GameObject.Find ("UI").GetComponent<UIManager> ();                       //1V1 or 3V3
 		yield return null;
@@ -88,13 +98,18 @@ public abstract  class Role_Main : RoleInfo {   //与徐宝骏合并
 			ani .SetTrigger ("CanStop");
 			stateAni = State_Ani.State_Idle;
 		} 
-		SetKillForKey ();
+		if (aiOrPlayer==AiOrPlayerType.Player) {
+			SetKillForKey ();
+		}
 		for (int i = 0; i < enemyInfo .Length; i++) {
 			enemyInfo [i].time_LastAtk += Time.deltaTime;
 		}
-		CanDeath ();//死亡判定
-
-
+		CanDeath ();//死亡判定,判定助攻，击杀，
+		skill_Q.timeCount += Time.deltaTime;
+		skill_W.timeCount += Time.deltaTime;
+		skill_E.timeCount += Time.deltaTime;
+		skill_D .timeCount +=Time .deltaTime;
+		skill_F.timeCount += Time.deltaTime;
 	}
 	void OnDrawGizmos(){
 		Gizmos.color = new Color (1, 1, 0, 0.5f);
@@ -113,14 +128,18 @@ public abstract  class Role_Main : RoleInfo {   //与徐宝骏合并
 	{ 
 		if (IsDeath ==false) {
 			Hp = Hp - hurt_Physic + hurt_Physic * DefensePhysical / (DefensePhysical + 100) - hurt_Magic + hurt_Magic * DefenseMagic / (DefenseMagic + 100);
-			for (int i = 0; i < enemyInfo.Length; i++) {
+			for (int i = 0; i < enemyInfo.Length; i++) {               //统计助攻；
 				if (enemyInfo[i].roleMain.insertID ==roleMain .insertID ) {
 					enemyInfo [i].time_LastAtk = 0f;
 				}
 			}
+			if (Hp <=0) {
+				IsDeath = true;
+			}
 		}
 	}
 	public void IntializeEnemyInfo1V1(Role_Camp camp){
+		Debug.Log ("初始化IntializeEnemyInfo1V1");
 		enemyInfo = new DeathInfo[1];
 		Role_Main temp1 = Scence1v1_Intialize.Instance.role_Player.GetComponent <Role_Main> ();
 		Role_Main temp2 = Scence1v1_Intialize.Instance.role_AI.GetComponent<Role_Main> ();
@@ -141,7 +160,7 @@ public abstract  class Role_Main : RoleInfo {   //与徐宝骏合并
 			}
 		}
 	}
-	public void IntializeEnemyInfo3V3(Role_Camp camp){  //徐宝骏来判断
+	public void IntializeEnemyInfo3V3(Role_Camp camp){  
 		enemyInfo = new DeathInfo[1];
 		for (int i = 0; i < 3; i++) {
 			Role_Main temp1 = Scence3v3_Intialize.Instance.role_Players [i].GetComponent<Role_Main> ();
@@ -180,16 +199,22 @@ public abstract  class Role_Main : RoleInfo {   //与徐宝骏合并
 		this.MoveTarget = target;
 		Vector3 lookDir = -transform.position + target;
 		lookDir.y = 0f;
-		if (Quaternion .Angle (transform .rotation ,Quaternion .LookRotation (lookDir))>=1f) {
-			transform.rotation =Quaternion .Slerp (transform .rotation ,Quaternion .LookRotation (lookDir),Time .deltaTime*50f );
+		Debug.Log ("出来吧，我的角度:"+Vector3 .Angle (lookDir ,transform .forward));
+		if (Vector3 .Angle (lookDir ,transform .forward)>=60f) {
+			transform.rotation = Quaternion.LookRotation (lookDir);
+			agent.enabled = false;
+			Debug.Log ("出来吧，我的角度");
 		}
+
 		if (Vector3.Distance (transform.position, MoveTarget) >= 0.3f) {  //大于0，3就自动寻路
 			if (stateAni !=State_Ani.State_Run ) {
 				ani.SetTrigger ("CanRun");
 			}
+			agent.enabled = true;
 			stateAni = State_Ani.State_Run;
 			Debug.Log ("自动寻路:"+target);
 			agent.Resume ();
+			agent.speed = moveSpeed;
 			agent.SetDestination (target);  //自动寻路	
 		} 
 	}
@@ -198,10 +223,9 @@ public abstract  class Role_Main : RoleInfo {   //与徐宝骏合并
 		this.target =target ;
 	}
 	public void CanDeath(){  //死亡判断
-		if (Hp <=0 && !IsDeath) {                  //死亡动作；
+		if (IsDeath) {                  //死亡动作；
 			Hp = 0;
 			ani.SetTrigger ("Can_Death");
-			IsDeath = true;
 			colRole.isTrigger = true; //不被碰撞；
 			colRole.enabled = false;  //不被检测
 			transform .Find ("weapon/WEAPON_1").gameObject .SetActive (false);
@@ -212,6 +236,7 @@ public abstract  class Role_Main : RoleInfo {   //与徐宝骏合并
 			for (int i = 0; i < enemyInfo.Length; i++) {
 				if (enemyInfo[i].time_LastAtk<=TimeLastDeath) {
 					enemyInfo [i].roleMain.assistsCount++;
+					enemyInfo [i].roleMain.ReceiveExpAndGold (worthExp / 2, worthMoney / 2);
 				}
 				if (enemyInfo[tempChioce].time_LastAtk>enemyInfo[i].time_LastAtk) {
 					tempChioce = i;
@@ -219,36 +244,48 @@ public abstract  class Role_Main : RoleInfo {   //与徐宝骏合并
 			}
 			if (enemyInfo[tempChioce].time_LastAtk<TimeLastDeath ) {
 				Debug.Log (playerName + "被" + enemyInfo [tempChioce].roleMain.playerName + "击杀了！！！"); //需要一个ui界面————————————————————
+				enemyInfo[tempChioce].roleMain .assistsCount --;
+				enemyInfo [tempChioce].roleMain.killCount++;
+				enemyInfo [tempChioce].roleMain.ReceiveExpAndGold (worthExp / 2, worthMoney / 2);
 			}
 		}
-		Debug.Log ("rebTimeCount" + rebTimeCount);
-		if (IsDeath && rebTimeCount >=6f) {
-			transform.Find ("MeshSelf").gameObject.SetActive (false);
-		}
+//		if (IsDeath && rebTimeCount >=6f) {
+//			transform.Find ("MeshSelf").gameObject.SetActive (false);
+//		}
 		
 		if (IsDeath && rebTimeCount>=rebirthTime ) {
 			IntiRoleRebirthData ();
 		}
 	}
-	public void CanLevelUp(ref int level,ref int exp){  //升级判断 :每级的经验公式：(90+(level-1)*20)
-		if (exp >(90+(level-1)*20) ) {
+	public void ReceiveExpAndGold(int exp,int gold){  //升级判断 :每级的经验公式：(90+(level-1)*20)
+		Level_exp +=exp ;
+		money += gold;
+		if (Level_exp>(90+(Level-1)*20) ) {
 			Level++;
-			exp = exp - (90 + (level - 1) * 20);
+			Level_exp = Level_exp - (90 + (Level - 1) * 20);
 		}
 	}
 
 	public void IntiRoleRebirthData(){ 
-		Debug.Log ("阿里复活啦");
-		transform.Find ("MeshSelf").gameObject.SetActive (true);
+		Debug.Log ("复活啦");
+//		transform.Find ("MeshSelf").gameObject.SetActive (true);
 		transform .Find ("weapon/WEAPON_1").gameObject .SetActive (true);
 		transform.GetComponent <HpShow> ().canShow = true;
 		colRole.enabled = true;
 		colRole.isTrigger = false;
-		if (ScenceType ==0) {
-			transform.position = Scence1v1_Intialize.Instance.pos_PlayerInti.position;
+		if (uimanager.mapSelect == MapSelect.oneVSone) {
+			if (roleCamp == Role_Camp.Red) {
+				transform.position = GameObject.Find ("PathSolider/point_00").transform.position;
+			} else {
+				transform.position = GameObject.Find ("PathSolider/point_XX").transform.position;
+			}
 		}
-		if (ScenceType ==1) {
-			transform.position =Scence3v3_Intialize .Instance.pos_PlayerInti.position;
+		if (uimanager.mapSelect == MapSelect.threeVSthree) {
+			if (roleCamp == Role_Camp.Red) {
+				transform.position = GameObject.Find ("RebirthPos/RebirthPos_Red").transform.position;
+			} else {
+				transform.position = GameObject.Find ("RebirthPos/RebirthPos_Blue").transform.position;
+			}
 		}
 		IsDeath = false;
 		ani.SetTrigger ("CanReAlive");
@@ -260,28 +297,54 @@ public abstract  class Role_Main : RoleInfo {   //与徐宝骏合并
 
 	public void SetKillForKey(){  //使用键盘调用技能函数；ui也需要调用相应的函数
 		if (Input .GetKeyDown (KeyCode.A )) {
+			
 			Akt_normal ();
 		}
 		if (Input .GetKeyDown (KeyCode .Q)) {
-			SetSkill_Q ();
+			if (skill_Q .timeCount >=skill_Q .CD && skill_Q .level>0 ) {
+				transform.rotation = Quaternion.LookRotation (skillLookDir);
+				SetSkill_Q ();
+				skill_Q.timeCount = 0f;
+			}
+
 		}
 		if (Input .GetKeyDown (KeyCode .W )) {
-			SetSkill_W ();
+			if (skill_W .timeCount >=skill_W .CD && skill_W .level>0) {
+				transform.rotation = Quaternion.LookRotation (skillLookDir);
+				SetSkill_W ();
+				skill_W.timeCount = 0f;
+			}
 		}
 		if (Input .GetKeyDown (KeyCode .E )) {
-			SetSkill_E ();
+			if (skill_E .timeCount >=skill_E .CD && skill_E .level>0) {
+				transform.rotation = Quaternion.LookRotation (skillLookDir);
+				SetSkill_E ();
+				skill_E.timeCount = 0f;
+			}
 		}
 	}
 	public void SetSkillForUI(SkillButtonName  skillName){   //为委托准备的借口
 		switch (skillName) {
 		case SkillButtonName.Button_Q:
-			SetSkill_Q ();
+			if (skill_Q .timeCount >=skill_Q .CD && skill_Q .level>0 ) {
+				transform.rotation = Quaternion.LookRotation (skillLookDir);
+				SetSkill_Q ();
+				skill_Q.timeCount = 0f;
+			}
 			break;
 		case SkillButtonName.Button_W:
-			SetSkill_W ();
+			if (skill_W .timeCount >=skill_W .CD && skill_W .level>0) {
+				transform.rotation = Quaternion.LookRotation (skillLookDir);
+				SetSkill_W ();
+				skill_W.timeCount = 0f;
+			}
 			break;
 		case SkillButtonName.Button_E :
-			SetSkill_E ();
+			transform.rotation = Quaternion.LookRotation (skillLookDir);
+			if (skill_E .timeCount >=skill_E .CD && skill_E .level>0) {
+				SetSkill_E ();
+				skill_E.timeCount = 0f;
+			}
 			break;
 		}
 	}
@@ -289,10 +352,16 @@ public abstract  class Role_Main : RoleInfo {   //与徐宝骏合并
 	public void SetOtherSkillForUI(SkillButtonName skillotherName){
 		switch (skillotherName) {
 		case SkillButtonName.Button_D:
-			SetOtherSkill (skill_D.skillName);
+			if (skill_D .timeCount >=skill_D .CD ) {
+				SetOtherSkill (skill_D.skillName);
+				skill_D.timeCount = 0f;
+			}
 			break;
 		case SkillButtonName.Button_F:
-			SetOtherSkill (skill_F.skillName);
+			if (skill_F.timeCount >=skill_F.CD) {
+				SetOtherSkill (skill_F.skillName);
+				skill_F.timeCount = 0f;
+			}
 			break;
 		}
 	}
@@ -375,7 +444,9 @@ public abstract  class Role_Main : RoleInfo {   //与徐宝骏合并
 public struct SkillInfo{
 	public SkillName skill;
 	public int level;
+	public int levelMax;
 	public int CD;
+	public int Mp;
 	public float timeCount;
 	public int attack_Physical;
 	public int attack_Magic;
@@ -391,6 +462,7 @@ public struct OtherSkillInfo{
 	public Sprite tex;
 	public int CD;
 	public bool IsCanUseful;
+	public float timeCount;
 }
 
 public enum SkillName{

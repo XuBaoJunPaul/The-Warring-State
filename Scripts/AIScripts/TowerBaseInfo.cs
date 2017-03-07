@@ -31,12 +31,24 @@ public class TowerBaseInfo :RoleInfo {
 				Hp -= hurtTemp * 0.5f;
 				break;
 			}
+			if (Hp <=0) {
+				IsDeath = true;
+				ani.SetTrigger ("CanDeath");
+				colRole.enabled = false;
+			}
+
 		}
 	}
 	public override void GetHurt(int hurt_Physic, int hurt_Magic,Role_Main roleMain)                    
 	{ 
 		if (IsDeath ==false) {
 			Hp = Hp - hurt_Physic + hurt_Physic * DefensePhysical / (DefensePhysical + 100) - hurt_Magic + hurt_Magic * DefenseMagic / (DefenseMagic + 100);
+			if (Hp <=0) {
+				roleMain.ReceiveExpAndGold (worthExp, worthMoney);
+				IsDeath = true;
+				ani.SetTrigger ("CanDeath");
+				colRole.enabled = false;
+			}
 		}
 	}
 }

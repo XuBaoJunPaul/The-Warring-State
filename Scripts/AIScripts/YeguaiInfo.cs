@@ -46,15 +46,16 @@ public class YeguaiInfo : RoleInfo {
 		Hp = Hp -hurt_Physic + hurt_Physic * DefensePhysical / (DefensePhysical + 100) -hurt_Magic + hurt_Magic * DefenseMagic / (DefenseMagic + 100);
 
 	}
-	public override void GetHurt(int hurt_Physic, int hurt_Magic,Role_Main roleMain)                    
-	{ 
-		if (IsDeath ==false) {
-			Hp = Hp - hurt_Physic + hurt_Physic * DefensePhysical / (DefensePhysical + 100) - hurt_Magic + hurt_Magic * DefenseMagic / (DefenseMagic + 100);
-			for (int i = 0; i < enemyInfo.Length; i++) {
-				if (enemyInfo[i].roleMain.insertID ==roleMain .insertID ) {
-					enemyInfo [i].time_LastAtk = 0f;
-				}
-			}
+	public override void GetHurt (int hurt_Physic, int hurt_Magic,Role_Main role) // 技能被动说明：普攻伤害
+	{
+		Hp = Hp -hurt_Physic + hurt_Physic * DefensePhysical / (DefensePhysical + 100) -hurt_Magic + hurt_Magic * DefenseMagic / (DefenseMagic + 100);
+		if (Hp <=0) {
+			Debug.Log ("你补到一个小兵啦");
+			Hp = 0;
+			GetComponent <HpShow> ().HpSilider.value = 0f;
+			Destroy (this.gameObject, 1f);
+			role.soliderKillCount++;
+			role.ReceiveExpAndGold (worthExp,worthMoney);
 		}
 	}
 

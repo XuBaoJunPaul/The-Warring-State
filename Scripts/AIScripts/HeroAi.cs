@@ -14,55 +14,84 @@ public class HeroAi : MonoBehaviour {
 	public float W_skillTimeCount;
 	public float E_skillTimeCount;
 
+	public Animator ani;
+
+	public UIManager uimanager;
+
 
 	public AIOfHeroState aiOfHeroState;
 
+	private int roadLine;
+
 	NavMeshAgent agent;
 
-	void Awake()
-	{
-		roleInfo = transform.GetComponent<RoleInfo> ();
-		roleMain = transform.GetComponent<Role_Main> ();
+	void Awake(){
 	}
 
 	void Start () {
+		roleInfo = transform.GetComponent<RoleInfo> ();
+		roleMain = transform.GetComponent<Role_Main> ();
+		ani = transform.GetComponent<Animator> ();
+		agent = GetComponent <NavMeshAgent> ();
+		uimanager = GameObject.Find ("UI").GetComponent<UIManager> ();
 		if (roleMain.aiOrPlayer == AiOrPlayerType.Player) {
 			this.enabled = false;
 		}
+		roadLine = Random.Range (0, 3);
 			
 		aiOfHeroState = AIOfHeroState.patrol;
 
-		if (roleInfo.roleCamp == Role_Camp.Blue) {
-			targetOfAI.target01 = GameObject.Find ("Tower_Blue_01").transform;
-			targetOfAI.target02 = GameObject.Find ("Shuijing_Blue").transform;
-			targetOfAI.target03 = GameObject.Find ("Shuijing_Red").transform;		
-		} else {
-			targetOfAI.target01 = GameObject.Find ("Tower_Red_01").transform;
-			targetOfAI.target02 = GameObject.Find ("Shuijing_Red").transform;
-			targetOfAI.target03 = GameObject.Find ("Shuijing_Blue").transform;
+		if (uimanager.mapSelect == MapSelect.oneVSone) {
+			if (roleInfo.roleCamp == Role_Camp.Blue) {
+				targetOfAI.target01 = GameObject.Find ("Tower_Red_01").transform;
+				targetOfAI.target02 = GameObject.Find ("shuiJingBlueRoot").transform;
+				targetOfAI.target03 = GameObject.Find ("shuiJingRedRoot").transform;		
+			} else {
+				targetOfAI.target01 = GameObject.Find ("Tower_Blue_01").transform;
+				targetOfAI.target02 = GameObject.Find ("shuiJingRedRoot").transform;
+				targetOfAI.target03 = GameObject.Find ("shuiJingBlueRoot").transform;
+			}
+		} else if (uimanager.mapSelect == MapSelect.threeVSthree) {
+			if (roleInfo.roleCamp == Role_Camp.Blue) {
+				if (roadLine == 0) {
+					targetOfAI.target01 = GameObject.Find ("Environment/Building/A_Towers/A_Tower_X02").transform;
+				} else if (roadLine == 1) {
+					targetOfAI.target01 = GameObject.Find ("Environment/Building/A_Towers/A_Tower_Z02").transform;
+				}else if (roadLine == 2) {
+					targetOfAI.target01 = GameObject.Find ("Environment/Building/A_Towers/A_Tower_S02").transform;
+				}
+					targetOfAI.target02 = GameObject.Find ("shuiJingBlueRoot").transform;
+					targetOfAI.target03 = GameObject.Find ("shuiJingRedRoot").transform;						
+				
+			} else {
+				if (roadLine == 0) {
+					targetOfAI.target01 = GameObject.Find ("Environment/Building/B_Towers/B_Tower_X02").transform;
+				} else if (roadLine == 1) {
+					targetOfAI.target01 = GameObject.Find ("Environment/Building/B_Towers/B_Tower_Z02").transform;
+				}else if (roadLine == 2) {
+					targetOfAI.target01 = GameObject.Find ("Environment/Building/B_Towers/B_Tower_S02").transform;
+				}
+				targetOfAI.target02 = GameObject.Find ("shuiJingRedRoot").transform;
+				targetOfAI.target03 = GameObject.Find ("shuiJingBlueRoot").transform;
+			}
 		}
-
 	}
 	
 
 	void Update () {
 
-		Collider[] col = Physics.OverlapSphere (transform.position, 10.0f);
+		Collider[] col = Physics.OverlapSphere (transform.position, 3.0f,roleInfo.EnemyLayer);
 
 		//进入残血状态
 		if (roleInfo.Hp <= (roleInfo.HpMax / 2)) {
 			aiOfHeroState = AIOfHeroState.halfBlood;
 		}
 		//进入遇敌状态
-		if (col.Length > 0) {
-			for (int i = 0; i < col.Length; i++) {
-				if (col [i].GetComponent<RoleInfo> ().roleCamp != this.roleInfo.roleCamp && aiOfHeroState != AIOfHeroState.halfBlood) {
-					aiOfHeroState = AIOfHeroState.meetEnemy;					
-				}
-			}		
+		if (col.Length > 0 && aiOfHeroState != AIOfHeroState.halfBlood) {
+					aiOfHeroState = AIOfHeroState.meetEnemy;													
 		}
 		//进入巡逻状态
-		if (aiOfHeroState != AIOfHeroState.halfBlood && aiOfHeroState != AIOfHeroState.meetEnemy) {
+		if (aiOfHeroState != AIOfHeroState.halfBlood && col.Length == 0) {
 			aiOfHeroState = AIOfHeroState.patrol;
 		}
 
@@ -70,14 +99,30 @@ public class HeroAi : MonoBehaviour {
 		//残血状态
 		if (aiOfHeroState == AIOfHeroState.halfBlood) {
 			agent.SetDestination (targetOfAI.target02.position);
+			ani.SetTrigger ("CanRun");
+			if (Vector3.Distance (transform.position, targetOfAI.target02.position) <= 0.5f) {
+				ani.SetTrigger ("CanStop");
+			}
+			if (roleInfo.Hp == roleInfo.HpMax) {
+				aiOfHeroState = AIOfHeroState.patrol;
+			}
 		}
 
 		//巡逻状态
 		if (aiOfHeroState == AIOfHeroState.patrol) {
-			if (targetOfAI.target01 == null)
-				agent.SetDestination (targetOfAI.target03.position);
+			Transform target;
+			if (targetOfAI.target01 == null) {
+				target = targetOfAI.target03;
+				agent.SetDestination (target.position);
+				ani.SetTrigger ("CanRun");
+			}
 			else{
-				agent.SetDestination (targetOfAI.target01.position);
+				target = targetOfAI.target01;
+				agent.SetDestination (target.position);
+				ani.SetTrigger ("CanRun");
+			}
+			if (Vector3.Distance (transform.position, target.position) <= 0.5f) {
+				ani.SetTrigger ("CanStop");
 			}
 		}
 		//遇敌状态
@@ -95,23 +140,34 @@ public class HeroAi : MonoBehaviour {
 					chioce = i;
 				}
 			}
-			agent.SetDestination (col [chioce].transform.position);
+			if (col [chioce].transform != null) {
+				agent.SetDestination (col [chioce].transform.position);
+			}
 			//在一定范围内攻击
-			if (atkTimeCount >= (1 / roleInfo.attack_Speed)) {
-				//英雄普通攻击
-				atkTimeCount = 0;
+			if (Vector3.Distance (transform.position, col [chioce].transform.position) <= 0.5f) {			
+				if (atkTimeCount >= (1 / roleInfo.attack_Speed)) {
+					//英雄普通攻击
+					ani.SetTrigger("CanSkill_Akt");
+					atkTimeCount = 0;
+				}
+				if(Q_skillTimeCount >= 3f){
+					//英雄技能Q
+					ani.SetTrigger("CanSkill_Q");
+					Q_skillTimeCount = 0;
+				}
+				if(W_skillTimeCount >= 5f){
+					//英雄技能W
+					ani.SetTrigger("CanSkill_W");
+					W_skillTimeCount = 0;
+				}
+				if(E_skillTimeCount >= 7f){
+					//英雄技能E
+					ani.SetTrigger("CanSkill_E");
+					E_skillTimeCount = 0;
+				}
 			}
-			if(Q_skillTimeCount >= 3f){
-				//英雄技能Q
-				Q_skillTimeCount = 0;
-			}
-			if(W_skillTimeCount >= 5f){
-				//英雄技能W
-				W_skillTimeCount = 0;
-			}
-			if(E_skillTimeCount >= 7f){
-				//英雄技能E
-				E_skillTimeCount = 0;
+			if (col.Length == 0) {
+				aiOfHeroState = AIOfHeroState.patrol;
 			}
 		}
 
@@ -126,7 +182,7 @@ public enum AIOfHeroState
 	meetEnemy,
 	halfBlood
 }
-
+[System .Serializable]
 public struct TargetOfAI
 {
 	public Transform target01;

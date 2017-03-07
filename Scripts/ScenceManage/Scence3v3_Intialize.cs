@@ -34,7 +34,7 @@ public class Scence3v3_Intialize : MonoBehaviour {
 		_instance=this;
 //		kindOfAI = Enum_Role.XiaoYaoZi;           //此行测试用 外部传入数据
 //		kindOfPlayer = Enum_Role.Ahri;        //此行测试用 外部传入数据
-		IntializeRoleType(Application .dataPath +"/Resources/InitializeInfo/HerosChooosed.text");  //选择玩家的英雄角色
+		IntializeRoleType(Application .dataPath +"/InitializeInfo/HerosChooosed.text");  //选择玩家的英雄角色
 		playerCamp =ChoiceCamp ();        //选择红蓝方，包括出生位置
 		ChoiceBirthPos (playerCamp);
 
@@ -54,26 +54,22 @@ public class Scence3v3_Intialize : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-		string pathTemp2=Application .dataPath +"/Resources/InitializeInfo/";
+		string pathTemp2=Application .dataPath +"/InitializeInfo/";
 		Debug.Log ("PathTemp:" + pathTemp2);
 		for (int i = 0; i < role_Players .Length; i++) {
 			IntializeDataRole (role_Players[i],kindOfPlayers[i]);   //初始化玩家的信息			
 			IntializeDataUser (role_Players[i], pathTemp2+"CurLoadPlayer.text"); //将玩家的名字，在游戏外的等级等给player；
-			//给UI的委托加事件;将玩家的技能绑定到ui界面上；
-			OperatePanel.skillButtonDelegate =role_Players[i].GetComponent <Role_Main>().SetSkillForUI;  
-			OperatePanel .publicSkillButtonDelegate=role_Players[i].GetComponent <Role_Main>().SetOtherSkillForUI;  
-			OperatePanel.attackButtonDelegate = role_Players[i].GetComponent<Role_Main>().Akt_normal;  
 		}
+		OperatePanel.skillButtonDelegate =role_Players[0].GetComponent <Role_Main>().SetSkillForUI;  //给UI的委托加事件;将玩家的技能绑定到ui界面上；
+		OperatePanel .publicSkillButtonDelegate=role_Players[0].GetComponent <Role_Main>().SetOtherSkillForUI;  
+		OperatePanel.attackButtonDelegate = role_Players[0].GetComponent<Role_Main>().Akt_normal;  
+		OperatePanel.addSkillButtonDelegate = role_Players[0].GetComponent<SkillManager> ().AddSkillButton;
 		for (int i = 0; i <role_AIs.Length ; i++) {
 			IntializeDataRole (role_AIs[i],kindOfAIs[i]);   //初始化玩家的信息		
 			IntializeDataUser (role_AIs[i], pathTemp2+"CurLoadPlayer.text"); //将玩家的名字，在游戏外的等级等给player；
-			//给UI的委托加事件;将玩家的技能绑定到ui界面上；
-			OperatePanel.skillButtonDelegate =role_AIs[i].GetComponent <Role_Main>().SetSkillForUI;  
-			OperatePanel .publicSkillButtonDelegate=role_AIs[i].GetComponent <Role_Main>().SetOtherSkillForUI;  
-			OperatePanel.attackButtonDelegate = role_AIs[i].GetComponent<Role_Main>().Akt_normal;  
 		}
 		IntializeOtherkill(pathTemp2+"HerosChooosed.text");              //初始化两边的召唤师技能（skill——D skill——F）
-
+		role_Players [0].GetComponent <Role_Main >().aiOrPlayer =AiOrPlayerType.Player;
 
 
 	}
@@ -84,14 +80,14 @@ public class Scence3v3_Intialize : MonoBehaviour {
 	}
 	public GameObject ChoicePrefab(Enum_Role role,int skinNum){
 		switch (role) {
-		case Enum_Role.GodOfMoon:
+		case Enum_Role.ChangE:
 			return Resources.Load <GameObject> ("Prefeb_Role/Heros/ChangE"+"_0"+skinNum);
 		case Enum_Role.YangJian:
 			return Resources .Load <GameObject>("Prefeb_Role/Heros/YangJian"+"_0"+skinNum);
-		case Enum_Role.JinKe:
+		case Enum_Role.JianMo:
 			return Resources.Load <GameObject> ("Prefeb_Role/Heros/JianMo"+"_0"+skinNum);
-		case Enum_Role.Amumu:
-			return Resources.Load <GameObject> ("Prefeb_Role/Heros/Amumu"+"_0"+skinNum);
+		case Enum_Role.WuNiang:
+			return Resources.Load <GameObject> ("Prefeb_Role/Heros/WuNiang"+"_0"+skinNum);
 		case Enum_Role.XiaoYaoZi:
 			return Resources.Load <GameObject> ("Prefeb_Role/Heros/XiaoYaoZi"+"_0"+skinNum);
 		case Enum_Role.Ahri:
@@ -102,20 +98,20 @@ public class Scence3v3_Intialize : MonoBehaviour {
 	}
 
 	public Data_Rloe ChoiceDataRole(Enum_Role role){
-		string path = Application.dataPath + "/Resources/InitializeInfo/HeroData/";
+		string path = Application.dataPath + "/InitializeInfo/HeroData/";
 		switch (role) {
-		case Enum_Role.GodOfMoon:
+		case Enum_Role.ChangE:
 			path += "ChangE.text";
 			Data_Rloe roleData = JsonUti.JsonstreamToObject <Data_Rloe> (path);
 			return roleData;
 		case Enum_Role.YangJian:
 			path += "YangJian.text";
 			return JsonUti.JsonstreamToObject<Data_Rloe> (path);
-		case Enum_Role.JinKe:
+		case Enum_Role.JianMo:
 			path += "JianMo.text";
 			return JsonUti.JsonstreamToObject<Data_Rloe> (path);
-		case Enum_Role.Amumu:
-			path += "Amumu.text";
+		case Enum_Role.WuNiang:
+			path += "WuNiang.text";
 			return JsonUti.JsonstreamToObject<Data_Rloe> (path);
 		case Enum_Role.XiaoYaoZi:
 			path += "XiaoYaoZi.text";
@@ -142,7 +138,7 @@ public class Scence3v3_Intialize : MonoBehaviour {
 		playerData.attack_Radius = data.attack_Radius;
 		playerData.attack_Speed = data.attack_Speed;
 		playerData.Level = data.Level;
-		playerData.Levl_exp = data.Levl_exp;
+		playerData.Level_exp = data.Levl_exp;
 		if (role.GetComponent<RoleInfo>().type_Range ==Type_Range.Long) {                        //初始化子弹层
 			role.transform.FindChild ("weapon/WEAPON_1").gameObject.layer = LayerMask.NameToLayer ("Bullet");
 		}

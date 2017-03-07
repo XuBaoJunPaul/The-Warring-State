@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine .AI ;
 
 [System .Serializable]
 public abstract class RoleInfo : MonoBehaviour {
@@ -19,7 +20,7 @@ public abstract class RoleInfo : MonoBehaviour {
 	public float attack_Speed;
 	public float moveSpeed;       //将moveSpeed赋值给NavMeshAgent agent的speed即控制移动速度；
 	public float attack_Radius;
-	public int Levl_exp;
+	public int Level_exp;
 	public int Level;
 	public int worthExp;
 	public int worthMoney;
@@ -33,11 +34,11 @@ public abstract class RoleInfo : MonoBehaviour {
 	public void BaseStart(){
 		uiManager = GameObject.Find ("UI").GetComponent <UIManager> ();
 		if (type_Allrole!=Type_Allrole.buffer) {           //是buffer的话就不设置
-			if (uiManager.mapSelect ==MapSelect.oneVSone) {
-				playerCamp = Scence1v1_Intialize.Instance.playerCamp;
-			}
 			if (uiManager .mapSelect ==MapSelect.threeVSthree) {
 				playerCamp = Scence3v3_Intialize.Instance.playerCamp;
+			}
+			if (uiManager.mapSelect ==MapSelect.oneVSone) {
+				playerCamp = Scence1v1_Intialize.Instance.playerCamp;
 			}
 			if (roleCamp == playerCamp) {
 				GetComponent <FOWRevealer> ().enabled = true;
@@ -49,15 +50,20 @@ public abstract class RoleInfo : MonoBehaviour {
 		}
 	}
 
-	public abstract void GetHurt (int hurt_Physic, int hurt_Magic,Type_Allrole role);
-	public abstract void GetHurt(int hurt_Physic, int hurt_Magic,Role_Main role);
 	public void GetHurt (int hurt_Physic, int hurt_Magic)
 	{
 		if (IsDeath ==false) {
 			Hp = Hp -hurt_Physic + hurt_Physic * DefensePhysical / (DefensePhysical + 100) -hurt_Magic + hurt_Magic * DefenseMagic / (DefenseMagic + 100);
 		}
 	}
-
+	public abstract void GetHurt (int hurt_Physic, int hurt_Magic,Type_Allrole role);
+	public abstract void GetHurt(int hurt_Physic, int hurt_Magic,Role_Main role);
+	public void ChangeMoveSpeed(float speed){
+		GetComponent <NavMeshAgent> ().speed = speed;
+	}
+	public void ResumMoveSpeed(){
+		GetComponent <NavMeshAgent> ().speed = moveSpeed;
+	}
 }
 public enum Type_Allrole{
 	role,

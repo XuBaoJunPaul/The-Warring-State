@@ -2,6 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Bullet action.
+/// 使用子弹脚本时必须调用的方法：GetNumber（），SetTarget（）
+/// </summary>
 public class BulletAction : MonoBehaviour {
 	public BulletType type;
 	public int attack_Physical;

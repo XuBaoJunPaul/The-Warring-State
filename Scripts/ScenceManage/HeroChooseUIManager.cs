@@ -289,7 +289,7 @@ public class HeroChooseUIManager : MonoBehaviour {
 	void Jason(){
 		if (!canSaveData) {
 			heroS.hero = this.heros;
-			string path = Application.dataPath + "/Resources/InitializeInfo/HerosChooosed.text";
+			string path = Application.dataPath + "/InitializeInfo/HerosChooosed.text";
 			JsonUti.ObjectToJsonStream <HeroChooseInfoS> (path, heroS);
 			canSaveData = true;
 		}
@@ -327,6 +327,17 @@ public class HeroChooseUIManager : MonoBehaviour {
 				hero3d [i].SetActive (true);
 			else
 				hero3d [i].SetActive (false);
+		}
+	}
+
+	public void ClearAllSet(){
+		heroChooseRound = 0;
+		for (int i = 0; i < 6; i++) {
+			heroHead [i].enabled = false;
+			if (i == 0)
+				heroC [i].color = new Color (1, 0.5f, 0.5f, 1);
+			else
+				heroC [i].color = new Color (1, 1, 1, 1);
 		}
 	}
 }
