@@ -21,7 +21,7 @@ a moba game using Unity3D
 
 ## 游戏截图
 
-- [主入口](PicturesOfThis/Login.jpg)
+- ![主入口](./PicturesOfThis/Login.jpg)
 - [模式选择]()
 - [角色选择]()
 - [1V1场景]()
