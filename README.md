@@ -19,10 +19,6 @@ a moba game using Unity3D
 - 手游化UI系统；
 - 数据统计系统；
 
-## 游戏视频
-
-![游戏视频](http://v.youku.com/v_show/id_XMjYxNTA5MjI3Mg==.html)
-
 ## 游戏截图
 
 - 登陆界面(利用JSON实现账号信息保存和读取)
