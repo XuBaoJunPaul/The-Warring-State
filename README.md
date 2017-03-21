@@ -22,15 +22,15 @@ a moba game using Unity3D
 ## 游戏截图
 
 - 登陆界面
-![主入口](./PicturesOfThis/Login.jpg)
+![主入口](./Pictures/Login.jpg)
 - 模式选择
-![模式选择](./PicturesOfThis/ModeSlect.jpg)
+![模式选择](./Pictures/ModeSlect.jpg)
 - 角色选择
-![角色选择](./PicturesOfThis/HeroSelect.jpg)
+![角色选择](./Pictures/HeroSelect.jpg)
 - 1V1场景
-![1V1场景](./PicturesOfThis/1V1.jpg)
+![1V1场景](./Pictures/1V1.jpg)
 - 3V3场景
-![3v3场景](./PicturesOfThis/3V3.png)
+![3v3场景](./Pictures/3V3.png)
 - 商城
 ![商城](./Pictures/商城.PNG)
 - 装备栏
