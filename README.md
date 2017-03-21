@@ -26,9 +26,9 @@ a moba game using Unity3D
 - 模式选择
 ![模式选择](./Pictures/ModeSlect.jpg)
 - 角色选择
-![角色选择](./Pictures/角色选择.jpg)
+![角色选择](./Pictures/角色选择.PNG)
 - 加载画面
-![加载画面](./Pictures/加载画面.jpg)
+![加载画面](./Pictures/加载画面.PNG)
 - 1V1场景
 ![1V1场景](./Pictures/1V1.jpg)
 - 3V3场景
